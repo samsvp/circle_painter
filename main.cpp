@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include "nf.hpp"
+#include "include/nf.hpp"
 
 
 namespace utils = nf::utils;
