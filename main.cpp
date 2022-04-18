@@ -129,7 +129,8 @@ auto circle_img(const char* target_path, const char* background_path,
                 cv::Mat min_avg_img = nf::circle_mask(down_background, x, y, cr);
                 min_avg_img = nf::translate(min_avg_img, pixel_pos[0] - x, pixel_pos[1] - y);
 
-                img = nf::overlay(min_avg_img, img, min_avg_img != cv::Vec3b(0,0,0));
+                float alpha = (0.2 * k) / r.size() + 0.05;
+                img = nf::overlay(min_avg_img, img, min_avg_img != cv::Vec3b(0,0,0), alpha);
             }
 
             std::cout << "Finished k=" << k << std::endl;
@@ -164,8 +165,6 @@ int main(int argc, char** argv)
     const char* background_path = utils::parse_option("-b", "imgs/galaxy.jpg", argc, argv);
 
     auto img = circle_img(target_path, background_path, mask_path, 5);
-
-    utils::time_it([&](){circle_img(target_path, background_path, mask_path, 5);});
 
     cv::imwrite("output.jpg", img);
 

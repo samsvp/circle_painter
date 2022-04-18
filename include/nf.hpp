@@ -67,14 +67,16 @@ cv::Mat overlay(const cv::Mat& foreground, const cv::Mat& background)
 /*
  * Overlays the foreground into the background using the given mask
  */
-cv::Mat overlay(const cv::Mat& foreground, const cv::Mat& background, const cv::Mat& mask)
+cv::Mat overlay(const cv::Mat& foreground, const cv::Mat& background, 
+        const cv::Mat& mask, float alpha)
 {
     cv::Mat out = cv::Mat::zeros(foreground.size(), foreground.type());
 
     for (size_t y = 0; y < foreground.cols * foreground.rows; y++)
     {
         out.at<cv::Vec3b>(y) = mask.at<cv::Vec3b>(y) == cv::Vec3b(0,0,0) ?
-            background.at<cv::Vec3b>(y) : foreground.at<cv::Vec3b>(y);
+            background.at<cv::Vec3b>(y):
+            alpha * foreground.at<cv::Vec3b>(y) + (1 - alpha) * background.at<cv::Vec3b>(y);
     }
     
     return out;
