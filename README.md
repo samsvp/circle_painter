@@ -24,8 +24,13 @@ First compile the script
 
 Then run
 ```
-./main -t target_path -m mask_path -b background_path
+./main -t target_path -m mask_path -b background_path -a alpha -f method
 ```
+
+Where
+- alpha is the maximum alpha (between 0 and 1)
+- method is the method to be used (1 - make circles smaller each iteration 2 - make 
+circles smaller as they approach the center of the image)
 
 #### Python
 Run `main.py`. Edit the following variables at the bottom of the file
