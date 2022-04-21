@@ -24,13 +24,15 @@ First compile the script
 
 Then run
 ```
-./main -t target_path -m mask_path -b background_path -a alpha -f method
+./main -t target_path -m mask_path -b background_path -a alpha
 ```
 
-Where
-- alpha is the maximum alpha (between 0 and 1)
-- method is the method to be used (1 - make circles smaller each iteration 2 - make 
-circles smaller as they approach the center of the image)
+Where 
+- target_path is where the image to be painted is;
+- mask_path is where the mask to what parts of the image to paint is;
+- background_path is the path of the image to use to reconstruct the target;
+- alpha is the maximum alpha (between 0 and 1);
+
 
 #### Python
 Run `main.py`. Edit the following variables at the bottom of the file
