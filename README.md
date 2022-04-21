@@ -4,9 +4,9 @@ This program uses a background image to recreate a new target image.
 A binary mask must also be passed to tell the program which parts to recreate.
 
 
-| ![target](imgs/john.jpg) | ![mask](imgs/john_mask.jpg) |
+| <img src="imgs/vini.jpeg" alt="source" width="400"/> | <img src="imgs/vini_mask.jpg" alt="mask" width="400"/> |
 |-|-|
-| ![background](imgs/space.jpg) | ![result](out.jpg) |
+| <img src="imgs/galaxy_4k.jpg" alt="background" width="400"/> | <img src="out.jpg" alt="out" width="400"/> |
 
 ### How it works
 The program selects pixels from the target image and then calculates the
