@@ -1,6 +1,7 @@
 # Output
 output.jpg
 pyout.png
+*.jpg
 
 ### C++
 # Prerequisites
