@@ -16,7 +16,6 @@ where the pixel is on the image.
 
 
 ### Running
-#### C++
 First compile the script
 ```
 ./compile.sh
@@ -24,7 +23,7 @@ First compile the script
 
 Then run
 ```
-./main -t target_path -m mask_path -b background_path -a alpha
+./main -t target_path -m mask_path -b background_path -a alpha -s steps
 ```
 
 Where 
@@ -32,18 +31,13 @@ Where
 - mask_path is where the mask to what parts of the image to paint is;
 - background_path is the path of the image to use to reconstruct the target;
 - alpha is the maximum alpha (between 0 and 1);
+- step is the amount of pixels to move when taking circles from the image;
 
-
-#### Python
-Run `main.py`. Edit the following variables at the bottom of the file
-
-```python
-mask_path = "imgs/john_mask.jpg"
-target_path = "imgs/john.jpg"
-background_path = "imgs/space.jpg"
+There is also a (much) slower python version (it is not a wrapper, but instead a rewrite)
+Run
 ```
-
-To point to the files you want
+python3 main.py -t target_path -m mask_path -b background_path -a alpha -s steps
+```
 
 ### Dependencies
 The C++ program uses `opencv` and `openmp`. It is the recommended way to run,

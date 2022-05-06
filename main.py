@@ -1,11 +1,12 @@
 #%%
 import time
-import numpy as np
+import argparse
 import skimage # type: ignore
+import numpy as np
 import skimage.transform as T # type: ignore
 import matplotlib.pyplot as plt # type: ignore
-from copy import deepcopy
 
+from copy import deepcopy
 
 from typing import Any, Callable, List, Tuple
 from nptyping import NDArray, Shape, Int
@@ -42,9 +43,10 @@ def circle_mask(img: NDArray[Shape[Any, Any], Int],
     return (circle, mask)
 
 
-def img_mean(img: NDArray[Shape[Any, Any], Int]) -> np.ndarray:
+def img_mean(img: NDArray[Shape[Any, Any], Int], 
+        mask: NDArray[Shape[Any, Any], Int]) -> np.ndarray:
     """Returns the average of one image"""
-    return np.mean(img, axis=(0,1))
+    return np.mean(img[mask], axis=0)
 
 
 def get_targets(mask: np.ndarray, target: np.ndarray,
@@ -63,20 +65,32 @@ def get_targets(mask: np.ndarray, target: np.ndarray,
 def place_circles(pixels_pos: List[Tuple[int, int]],
         target_pixels: np.ndarray, start: int, end: int,
         step: int, r: List[int], sx: float, 
-        iters: List[int], img: np.ndarray, 
-        d_bg: np.ndarray) -> np.ndarray:
+        iters: List[int], max_alpha: float, img: np.ndarray, 
+        d_bg: np.ndarray, d_tg: np.ndarray) -> np.ndarray:
     """Places circles inside the img"""
 
     for k in range(start, end):
-        cr = int(r[k] * sx)
+        max_a = 1.2
+        min_a = 0.25
+        a = max_a
+
+        cr = int(a * r[k] * sx)
+
+        calc_a = lambda x, y: max(
+            min( max_a,
+                max_a / 800 * (
+                    (d_tg.shape[1] // 2 - x) ** 2 + 
+                    (d_tg.shape[0] // 2 - y) ** 2)
+                ), min_a
+            )
 
         sub_mask_pos, means = zip(*[
             # need to apply mask to become equal to the c++ code
-            ((x, y), img_mean(
-                circle_mask(d_bg, x, y, cr)[0]) )
+            ((x, y), img_mean( *circle_mask(d_bg, x, y, calc_a(x,y) * r[k] * sx)))
             for x in range(cr, d_bg.shape[1] - cr, step)
                 for y in range(cr, d_bg.shape[0] - cr, step)
         ])
+
         means = np.array(means)
 
         for _ in range(iters[k]):
@@ -96,18 +110,19 @@ def place_circles(pixels_pos: List[Tuple[int, int]],
             # get the image from the location
             min_avg_img, mask = circle_mask(d_bg, x, y, cr)
             # shift it to the right place
-            mask = shift(mask, 
-                (pixel_pos[1]-y, pixel_pos[0]-x))
-            min_avg_img = shift(min_avg_img, 
-                (pixel_pos[1]-y, pixel_pos[0]-x))
-            img[mask] = min_avg_img[mask]
+            mask = shift(mask, (pixel_pos[1]-y, pixel_pos[0]-x))
+            min_avg_img = shift(min_avg_img, (pixel_pos[1]-y, pixel_pos[0]-x))
+
+            alpha = max_alpha * (min_a * r[k] * sx / cr) ** 0.8 + 0.1
+            img[mask] = alpha * min_avg_img[mask] + (1 - alpha) * img[mask]
 
         print(f"Finished k={k}")
+
     return img
 
 
 def circle_img(target_path: str, background_path: str,
-        mask_path: str, step: int=5):
+        mask_path: str, max_alpha: float, step: int=5):
     """Creates the target image using pieces of the 
     background path. The given mask tells the program
     which parts to focus on"""
@@ -137,25 +152,38 @@ def circle_img(target_path: str, background_path: str,
         d_mask, d_target, 
         lambda mask, x, y: all(mask[y, x] != [0,0,0])
     )
+
     # recreate circles using images
     img = place_circles(pixels_pos, target_pixels, 0, len(r), 
-        step, r, sx, iters, img, d_background)
+        step, r, sx, iters, max_alpha, img, d_background, d_target)
     
     return img
 
 
-mask_path = "imgs/john_mask.jpg"
-target_path = "imgs/john.jpg"
-background_path = "imgs/space.jpg"
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", default="imgs/john_mask.jpg")
+    parser.add_argument("-t", default="imgs/john.jpg")
+    parser.add_argument("-b", default="imgs/space.jpg")
+    parser.add_argument("-a", default=0.8)
+    parser.add_argument("-s", default=5)
 
-s = time.time()
-img = circle_img(
-    target_path, background_path, mask_path)
-print(time.time() - s)
 
-skimage.io.imsave("pyout.png", img)
+    args = parser.parse_args()
+    max_alpha = args.a
+    target_path = args.t
+    background_path = args.b
+    mask_path = args.m
+    step = args.s
 
-plt.imshow(img)
-plt.show()
+    s = time.time()
+    img = circle_img(target_path, background_path, 
+        mask_path, max_alpha, step)
+    print(time.time() - s)
+
+    skimage.io.imsave("pyout.png", img)
+
+    plt.imshow(img)
+    plt.show()
 
 # %%
